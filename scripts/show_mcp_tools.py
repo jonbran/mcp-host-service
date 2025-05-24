@@ -5,7 +5,6 @@ Script to show available MCP tools and their capabilities.
 This script queries the MCP Host service to get information about:
 1. All available model providers and MCP servers
 2. Tool capabilities of MCP servers
-3. Specifically tests the Playwright MCP server
 
 Usage:
     python show_mcp_tools.py [--port PORT]
