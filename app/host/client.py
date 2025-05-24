@@ -61,8 +61,6 @@ class MCPClient:
         # Initialize with configuration if available
         if self.config.config:
             logger.info(f"Initializing {self.name} with configuration: {self.config.config}")
-                
-                await self._send_stdio_request(init_request)
     
     async def _initialize_sse(self) -> None:
         """Initialize SSE transport."""
