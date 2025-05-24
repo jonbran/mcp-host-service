@@ -11,7 +11,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import router as api_router
 from app.api.models_router import router as models_router
-from app.api.playwright_router import router as playwright_router
 from app.auth.init import init_admin_user
 from app.auth.router import router as auth_router
 from app.config.config import load_config
@@ -59,7 +58,6 @@ app = FastAPI(
 app.include_router(api_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(models_router, prefix="/api")
-app.include_router(playwright_router, prefix="/api")
 
 # Add CORS middleware
 app.add_middleware(

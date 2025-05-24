@@ -13,7 +13,6 @@ This project implements an MCP (Model Context Protocol) Host/Client/Service that
 - Connect to configured MCP Servers to extend the model's capabilities:
   - WebScraper: Extract text and data from websites
   - SearchEngine: Perform web searches for information retrieval
-  - Playwright: Web automation and browser interactions
 - Provide a REST API for users to interact with the model
 - Support conversation persistence for continued interactions
 - Docker support for containerization
@@ -41,7 +40,6 @@ This project implements an MCP (Model Context Protocol) Host/Client/Service that
                       │  MCP Servers: │
                       │ • WebScraper  │
                       │ • SearchEngine│
-                      │ • Playwright  │
                       └───────────────┘
 ```
 
@@ -61,13 +59,6 @@ The system integrates with several MCP servers that provide specialized function
 
 1. **WebScraper**: Scrapes and extracts content from web pages.
 2. **SearchEngine**: Performs web searches to provide up-to-date information.
-3. **Playwright**: Provides web automation capabilities, including:
-   - Taking screenshots of websites
-   - Extracting text and HTML from pages
-   - Automating browser interactions
-   - Testing web applications
-
-For detailed information about the Playwright MCP server, see [docs/playwright_mcp.md](docs/playwright_mcp.md).
 
 ### Model Integration
 
@@ -142,7 +133,6 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 - `GET /api/conversations/{conversation_id}` - Retrieve a conversation by ID
 - `DELETE /api/conversations/{conversation_id}` - Delete a conversation
 - `GET /api/models` - List available model providers and MCP servers
-- `POST /api/playwright` - Send requests to the Playwright MCP server
 
 ## Development
 

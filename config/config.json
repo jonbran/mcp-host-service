@@ -15,14 +15,6 @@
           "type": "sse",
           "url": "https://example.com/search-mcp"
         }
-      },
-      {
-        "name": "Playwright",
-        "transport": {
-          "type": "stdio",
-          "command": "npx",
-          "args": ["-y", "@executeautomation/playwright-mcp-server", "--headless", "--vision"]
-        }
       }
     ]
   },

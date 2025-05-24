@@ -96,17 +96,6 @@ async def start_services(start_webscraper: bool, start_searchengine: bool):
                     process.kill()
 
 
-def start_playwright_server():
-    """Start the Playwright MCP server."""
-    try:
-        subprocess.Popen([
-            "npx", "-y", "@executeautomation/playwright-mcp-server"
-        ])
-        print("Playwright MCP server started successfully.")
-    except Exception as e:
-        print(f"Failed to start Playwright MCP server: {e}")
-
-
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Start MCP Service and Servers")
@@ -137,9 +126,6 @@ def main():
     if not (args.webscraper or args.searchengine):
         print("Warning: No MCP servers specified. Only the MCP service will be started.")
         print("Use --webscraper, --searchengine, or --all to start MCP servers.\n")
-    
-    # Start the Playwright MCP server
-    start_playwright_server()
     
     asyncio.run(start_services(args.webscraper, args.searchengine))
 
