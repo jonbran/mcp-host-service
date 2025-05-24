@@ -57,6 +57,24 @@ class MCPClient:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
+        
+        # Initialize with configuration if available
+        if self.config.config:
+            logger.info(f"Initializing {self.name} with configuration: {self.config.config}")
+            
+            # For Playwright, set the mode if specified
+            if self.name == "Playwright" and "mode" in self.config.config:
+                mode = self.config.config["mode"]
+                logger.info(f"Setting Playwright mode to: {mode}")
+                
+                init_request = {
+                    "type": "init",
+                    "params": {
+                        "mode": mode
+                    }
+                }
+                
+                await self._send_stdio_request(init_request)
     
     async def _initialize_sse(self) -> None:
         """Initialize SSE transport."""

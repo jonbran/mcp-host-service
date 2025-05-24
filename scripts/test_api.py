@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 
 # Set the base URL for the API
-BASE_URL = "http://localhost:8003/api"
+BASE_URL = "http://localhost:8000/api"
 
 async def test_mcp_service():
     """Test the MCP service functionality."""
@@ -35,13 +35,37 @@ async def test_mcp_service():
             
             print("✅ Health check passed!")
             
+            # 1.5 Authenticate to get a token
+            print("\n1.5. Authenticating...")
+            print("-" * 30)
+            response = await client.post(
+                f"{BASE_URL}/auth/token",
+                data={"username": "admin", "password": "adminpassword"},
+                headers={"Content-Type": "application/x-www-form-urlencoded"}
+            )
+            print(f"Status: {response.status_code}")
+            
+            if response.status_code != 200:
+                print(f"❌ Authentication failed! {response.text}")
+                return False
+            
+            token_data = response.json()
+            token = token_data.get("access_token")
+            token_type = token_data.get("token_type", "bearer")
+            
+            print(f"✅ Authentication successful! Got token.")
+            
+            # Add authorization header for subsequent requests
+            auth_header = {"Authorization": f"{token_type} {token}"}
+            
             # Continue with other tests...
             # 2. Create a new conversation
             print("\n2. Creating new conversation...")
             print("-" * 30)
             response = await client.post(
                 f"{BASE_URL}/conversations",
-                json={"message": "Please search for information about artificial intelligence."}
+                json={"message": "Please search for information about artificial intelligence."},
+                headers=auth_header
             )
             print(f"Status: {response.status_code}")
             print(f"Response: {response.json()}")

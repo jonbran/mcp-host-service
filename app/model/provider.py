@@ -323,13 +323,23 @@ class OpenAIProvider(ModelProvider):
             
             formatted_messages.append({"role": formatted_role, "content": content})
         
+        # Validate model ID
+        if not self.config.model_id:
+            raise ValueError("Model ID is not provided in the configuration")
+
+        # Validate model ID (optional: add a list of supported models for stricter validation)
+        logger.info(f"Using model ID: {self.config.model_id}")
+
+        # Allow max_tokens to be configurable
+        max_tokens = self.config.max_tokens if hasattr(self.config, 'max_tokens') else 300
+
         # Prepare the API request
         request_data = {
             "model": self.config.model_id,
             "messages": formatted_messages,
             "temperature": self.config.temperature,
             "top_p": self.config.top_p,
-            "max_tokens": 300,  # Limit response length
+            "max_tokens": max_tokens,  # Configurable response length
         }
         
         # Call the OpenAI API

@@ -46,4 +46,6 @@ def load_env(env_file: Optional[str] = None) -> Dict[str, str]:
         "API_HOST": os.environ.get("API_HOST", "0.0.0.0"),
         "API_PORT": os.environ.get("API_PORT", "8000"),
         "DATA_DIR": os.environ.get("DATA_DIR", "./data"),
+        "ANTHROPIC_API_KEY": os.environ.get("ANTHROPIC_API_KEY"),
+        "OPENAI_API_KEY": os.environ.get("OPENAI_API_KEY"),
     }

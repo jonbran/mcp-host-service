@@ -58,9 +58,9 @@ The MCP Host service uses OAuth2 Password flow for authentication. The UI client
 
 #### Authentication Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/auth/token` | POST | Obtain an access token |
+| Endpoint          | Method | Description            |
+| ----------------- | ------ | ---------------------- |
+| `/api/auth/token` | POST   | Obtain an access token |
 
 #### Authentication Flow
 
@@ -98,19 +98,20 @@ The UI client should provide a complete interface for managing conversations wit
 
 #### Conversation Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/conversations` | POST | Create a new conversation |
-| `/conversations` | GET | List existing conversations |
-| `/conversations/{conversation_id}` | GET | Get a specific conversation |
-| `/conversations/{conversation_id}/messages` | POST | Add a message to a conversation |
-| `/conversations/{conversation_id}` | DELETE | Delete a conversation |
+| Endpoint                                    | Method | Description                     |
+| ------------------------------------------- | ------ | ------------------------------- |
+| `/conversations`                            | POST   | Create a new conversation       |
+| `/conversations`                            | GET    | List existing conversations     |
+| `/conversations/{conversation_id}`          | GET    | Get a specific conversation     |
+| `/conversations/{conversation_id}/messages` | POST   | Add a message to a conversation |
+| `/conversations/{conversation_id}`          | DELETE | Delete a conversation           |
 
 #### Creating a New Conversation
 
 The UI should provide a way to start a new conversation, optionally with an initial message.
 
 **Request:**
+
 ```json
 POST /conversations HTTP/1.1
 Authorization: Bearer {access_token}
@@ -122,6 +123,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "conversation_id": "6bc898b1-4c08-469e-8e33-25a1db2d1729",
@@ -134,12 +136,14 @@ Content-Type: application/json
 The UI should display a list of existing conversations with pagination support.
 
 **Request:**
+
 ```
 GET /conversations?limit=20&offset=0 HTTP/1.1
 Authorization: Bearer {access_token}
 ```
 
 **Response:**
+
 ```json
 {
   "conversations": [
@@ -164,12 +168,14 @@ Authorization: Bearer {access_token}
 The UI should allow users to view the full history of a conversation.
 
 **Request:**
+
 ```
 GET /conversations/6bc898b1-4c08-469e-8e33-25a1db2d1729 HTTP/1.1
 Authorization: Bearer {access_token}
 ```
 
 **Response:**
+
 ```json
 {
   "id": "6bc898b1-4c08-469e-8e33-25a1db2d1729",
@@ -195,6 +201,7 @@ Authorization: Bearer {access_token}
 The UI should provide a message input field and send button for adding messages to a conversation.
 
 **Request:**
+
 ```json
 POST /conversations/6bc898b1-4c08-469e-8e33-25a1db2d1729/messages HTTP/1.1
 Authorization: Bearer {access_token}
@@ -206,6 +213,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "conversation_id": "6bc898b1-4c08-469e-8e33-25a1db2d1729",
@@ -218,12 +226,14 @@ Content-Type: application/json
 The UI should provide a way to delete conversations.
 
 **Request:**
+
 ```
 DELETE /conversations/6bc898b1-4c08-469e-8e33-25a1db2d1729 HTTP/1.1
 Authorization: Bearer {access_token}
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -236,14 +246,139 @@ Authorization: Bearer {access_token}
 The UI client should implement a health check feature to verify the MCP Host service is available.
 
 **Request:**
+
 ```
 GET /health HTTP/1.1
 ```
 
 **Response:**
+
 ```json
 {
   "status": "ok"
+}
+```
+
+### Playwright MCP Server Integration
+
+The UI client should support integration with the Playwright MCP server for web automation capabilities. This integration enables users to perform web-based tasks directly through the UI.
+
+#### Playwright Endpoint
+
+| Endpoint          | Method | Description                                |
+| ----------------- | ------ | ------------------------------------------ |
+| `/api/playwright` | POST   | Send requests to the Playwright MCP server |
+
+#### Playwright Modes
+
+The client should be aware that the Playwright MCP server can operate in two modes:
+
+- **Snapshot Mode (Default)**: For one-off, stateless interactions with web pages
+- **Vision Mode**: For interactive, stateful browser automation sequences
+
+#### Example Playwright API Request
+
+**Screenshot in Snapshot Mode:**
+
+```json
+POST /api/playwright HTTP/1.1
+Authorization: Bearer {access_token}
+Content-Type: application/json
+
+{
+  "type": "tool",
+  "name": "screenshot",
+  "params": {
+    "url": "https://example.com",
+    "output_path": "example_screenshot.png"
+  }
+}
+```
+
+**Browser Automation in Vision Mode:**
+
+```json
+POST /api/playwright HTTP/1.1
+Authorization: Bearer {access_token}
+Content-Type: application/json
+
+{
+  "type": "tool",
+  "name": "launch_browser",
+  "params": {
+    "headless": false
+  }
+}
+```
+
+#### UI Elements for Playwright Integration
+
+The UI client should include:
+
+1. **Web Automation Panel**:
+
+   - Controls to take screenshots of URLs
+   - Form extraction capabilities
+   - Browser automation options (when in Vision mode)
+
+2. **Screenshot Display**:
+
+   - Ability to display screenshots taken by Playwright
+   - Option to download screenshots
+
+3. **Web Data Visualization**:
+   - Display extracted text, links, or other web content
+   - Formatting for different types of extracted content
+
+### Default Provider and Model Selection
+
+The UI client must support displaying and selecting the default provider and model. The following requirements should be implemented:
+
+1. **Default Provider Display**:
+
+   - Display the name of the default provider (e.g., "Anthropic Claude Sonnet 4") in the settings or dashboard.
+
+2. **Provider Info Retrieval**:
+
+   - Fetch and display detailed information about the default provider, including `provider_type` and `model_id`.
+
+3. **Conversation Default Provider**:
+
+   - Ensure that conversations created without specifying a provider use the default provider.
+   - Display the provider used for each conversation in the conversation history.
+
+4. **Error Handling**:
+   - Display user-friendly error messages if the default provider is unavailable or misconfigured.
+
+#### Example Default Provider API Response
+
+```json
+{
+  "default_provider": "anthropic",
+  "providers": [
+    {
+      "name": "anthropic",
+      "provider_type": "anthropic",
+      "model_id": "claude-sonnet-4-20250514"
+    },
+    {
+      "name": "openai",
+      "provider_type": "openai",
+      "model_id": "gpt-4o-mini"
+    },
+    {
+      "name": "Playwright",
+      "is_mcp_server": true
+    },
+    {
+      "name": "WebScraper",
+      "is_mcp_server": true
+    },
+    {
+      "name": "SearchEngine",
+      "is_mcp_server": true
+    }
+  ]
 }
 ```
 
@@ -252,11 +387,13 @@ GET /health HTTP/1.1
 ### Required Components
 
 1. **Login Screen**
+
    - Username and password fields
    - Login button
    - Error messaging for failed login attempts
 
 2. **Conversation List**
+
    - List of existing conversations with timestamps
    - Preview of the last message
    - Create new conversation button
@@ -264,6 +401,7 @@ GET /health HTTP/1.1
    - Pagination controls
 
 3. **Conversation View**
+
    - Message history display
    - Clear visual distinction between user and assistant messages
    - Message timestamp display
@@ -279,19 +417,31 @@ GET /health HTTP/1.1
 ### Optional Advanced Features
 
 1. **Typing Indicators**
+
    - Display a typing indicator while waiting for the assistant's response
 
 2. **Message Formatting**
+
    - Support for Markdown rendering in messages
    - Code syntax highlighting
    - Support for displaying images if the model provides image URLs
 
 3. **MCP Capability Visualization**
+
    - Visual indication when the model is using MCP features
    - Display of which MCP servers are being used
+   - Show Playwright actions and results when the Playwright MCP server is used
 
-4. **Export Functionality**
+4. **Playwright Integration Features**
+
+   - Interactive web browsing interface for Vision mode
+   - Screenshot viewer for displaying captured web pages
+   - Web content extraction visualization
+   - Visual feedback for browser automation actions
+
+5. **Export Functionality**
    - Option to export conversations as text or JSON
+   - Ability to export screenshots and extracted web content
 
 ## Error Handling
 
@@ -300,11 +450,13 @@ The UI client should implement comprehensive error handling for all API interact
 ### Common Error Scenarios
 
 1. **Authentication Errors**
+
    - Invalid credentials
    - Expired tokens
    - Unauthorized access
 
 2. **Network Errors**
+
    - Service unavailable
    - Request timeout
    - Connection issues
@@ -336,11 +488,12 @@ The MCP Host service may take time to process messages, especially when using co
 
 ## Multi-Provider Support
 
-The MCP Host supports multiple model providers (HuggingFace, OpenAI, Anthropic). If the server configuration exposes provider selection to clients, the UI should:
+The MCP Host supports multiple model providers (HuggingFace, OpenAI, Anthropic) and MCP servers (Playwright, WebScraper, SearchEngine). If the server configuration exposes provider selection to clients, the UI should:
 
-1. Display available provider options
+1. Display available provider options including both model providers and MCP servers
 2. Allow switching between providers
 3. Adapt the interface based on provider capabilities
+4. Show appropriate UI elements for interacting with MCP servers
 
 ## Implementation Guidelines
 
@@ -355,6 +508,7 @@ The MCP Host supports multiple model providers (HuggingFace, OpenAI, Anthropic).
 ### Security Considerations
 
 1. Store authentication tokens securely:
+
    - Use HTTP-only cookies or secure storage mechanisms
    - Clear tokens on logout
 
@@ -379,36 +533,36 @@ The MCP Host supports multiple model providers (HuggingFace, OpenAI, Anthropic).
 class AuthService {
   async login(username, password) {
     const formData = new URLSearchParams();
-    formData.append('grant_type', 'password');
-    formData.append('username', username);
-    formData.append('password', password);
-    
-    const response = await fetch('http://localhost:8000/api/auth/token', {
-      method: 'POST',
+    formData.append("grant_type", "password");
+    formData.append("username", username);
+    formData.append("password", password);
+
+    const response = await fetch("http://localhost:8000/api/auth/token", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: formData,
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Authentication failed');
+      throw new Error(error.detail || "Authentication failed");
     }
-    
+
     const data = await response.json();
-    localStorage.setItem('access_token', data.access_token);
+    localStorage.setItem("access_token", data.access_token);
     return data;
   }
-  
+
   logout() {
-    localStorage.removeItem('access_token');
+    localStorage.removeItem("access_token");
   }
-  
+
   getToken() {
-    return localStorage.getItem('access_token');
+    return localStorage.getItem("access_token");
   }
-  
+
   isAuthenticated() {
     return !!this.getToken();
   }
@@ -420,98 +574,256 @@ class AuthService {
 ```javascript
 class ConversationService {
   constructor() {
-    this.baseUrl = 'http://localhost:8000';
+    this.baseUrl = "http://localhost:8000";
     this.authService = new AuthService();
   }
-  
+
   async getHeaders() {
     const token = this.authService.getToken();
     return {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     };
   }
-  
+
   async createConversation(initialMessage = null) {
     const headers = await this.getHeaders();
-    const body = initialMessage ? JSON.stringify({ message: initialMessage }) : '{}';
-    
+    const body = initialMessage
+      ? JSON.stringify({ message: initialMessage })
+      : "{}";
+
     const response = await fetch(`${this.baseUrl}/conversations`, {
-      method: 'POST',
+      method: "POST",
       headers,
       body,
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to create conversation');
+      throw new Error(error.detail || "Failed to create conversation");
     }
-    
+
     return response.json();
   }
-  
+
   async getConversations(limit = 20, offset = 0) {
     const headers = await this.getHeaders();
-    
-    const response = await fetch(`${this.baseUrl}/conversations?limit=${limit}&offset=${offset}`, {
-      method: 'GET',
-      headers,
-    });
-    
+
+    const response = await fetch(
+      `${this.baseUrl}/conversations?limit=${limit}&offset=${offset}`,
+      {
+        method: "GET",
+        headers,
+      }
+    );
+
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to get conversations');
+      throw new Error(error.detail || "Failed to get conversations");
     }
-    
+
     return response.json();
   }
-  
+
   async getConversation(conversationId) {
     const headers = await this.getHeaders();
-    
-    const response = await fetch(`${this.baseUrl}/conversations/${conversationId}`, {
-      method: 'GET',
-      headers,
-    });
-    
+
+    const response = await fetch(
+      `${this.baseUrl}/conversations/${conversationId}`,
+      {
+        method: "GET",
+        headers,
+      }
+    );
+
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to get conversation');
+      throw new Error(error.detail || "Failed to get conversation");
     }
-    
+
     return response.json();
   }
-  
+
   async sendMessage(conversationId, message) {
     const headers = await this.getHeaders();
-    
-    const response = await fetch(`${this.baseUrl}/conversations/${conversationId}/messages`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ message }),
-    });
-    
+
+    const response = await fetch(
+      `${this.baseUrl}/conversations/${conversationId}/messages`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ message }),
+      }
+    );
+
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to send message');
+      throw new Error(error.detail || "Failed to send message");
     }
-    
+
     return response.json();
   }
-  
+
   async deleteConversation(conversationId) {
     const headers = await this.getHeaders();
-    
-    const response = await fetch(`${this.baseUrl}/conversations/${conversationId}`, {
-      method: 'DELETE',
-      headers,
-    });
-    
+
+    const response = await fetch(
+      `${this.baseUrl}/conversations/${conversationId}`,
+      {
+        method: "DELETE",
+        headers,
+      }
+    );
+
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.detail || 'Failed to delete conversation');
+      throw new Error(error.detail || "Failed to delete conversation");
     }
-    
+
+    return response.json();
+  }
+}
+```
+
+### Playwright Service
+
+```javascript
+class PlaywrightService {
+  constructor() {
+    this.baseUrl = "http://localhost:8000";
+    this.authService = new AuthService();
+  }
+
+  async getHeaders() {
+    const token = this.authService.getToken();
+    return {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+  }
+
+  async takeScreenshot(url, outputPath) {
+    const headers = await this.getHeaders();
+
+    const request = {
+      type: "tool",
+      name: "screenshot",
+      params: {
+        url,
+        output_path: outputPath,
+      },
+    };
+
+    const response = await fetch(`${this.baseUrl}/api/playwright`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to take screenshot");
+    }
+
+    return response.json();
+  }
+
+  async extractText(url, selector = null) {
+    const headers = await this.getHeaders();
+
+    const request = {
+      type: "tool",
+      name: "extract_text",
+      params: {
+        url,
+        ...(selector && { selector }),
+      },
+    };
+
+    const response = await fetch(`${this.baseUrl}/api/playwright`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to extract text");
+    }
+
+    return response.json();
+  }
+
+  async launchBrowser(headless = true) {
+    const headers = await this.getHeaders();
+
+    const request = {
+      type: "tool",
+      name: "launch_browser",
+      params: {
+        headless,
+      },
+    };
+
+    const response = await fetch(`${this.baseUrl}/api/playwright`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to launch browser");
+    }
+
+    return response.json();
+  }
+
+  async navigate(url) {
+    const headers = await this.getHeaders();
+
+    const request = {
+      type: "tool",
+      name: "navigate",
+      params: {
+        url,
+      },
+    };
+
+    const response = await fetch(`${this.baseUrl}/api/playwright`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to navigate");
+    }
+
+    return response.json();
+  }
+
+  async closeBrowser() {
+    const headers = await this.getHeaders();
+
+    const request = {
+      type: "tool",
+      name: "close_browser",
+      params: {},
+    };
+
+    const response = await fetch(`${this.baseUrl}/api/playwright`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to close browser");
+    }
+
     return response.json();
   }
 }
@@ -528,10 +840,12 @@ The UI client should include comprehensive testing:
 ## Deployment Considerations
 
 1. **Environment Configuration**:
+
    - Support for different environments (development, staging, production)
    - Configuration of API endpoints based on environment
 
 2. **Build Process**:
+
    - Minification and bundling for production
    - Environment-specific builds
 

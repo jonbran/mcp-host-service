@@ -1,13 +1,16 @@
 """Configuration module for MCP service."""
 
 import json
+import logging
 import os
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, RootModel, validator
+
+logger = logging.getLogger(__name__)
 
 
 class TransportType(str, Enum):
@@ -54,6 +57,7 @@ class MCPServerConfig(BaseModel):
     name: str
     transport: TransportConfig
     params: Optional[Dict[str, Any]] = None
+    config: Optional[Dict[str, Any]] = None
 
 
 class MCPConfig(BaseModel):
@@ -79,6 +83,18 @@ class ModelConfig(BaseModel):
     batch_size: int = 1
     device: str = "cuda" if os.environ.get("USE_GPU", "0") == "1" else "cpu"
     optimize: bool = True
+    
+    @validator("api_key")
+    def validate_api_key(cls, v: Optional[str], values: Dict[str, Any]) -> Optional[str]:
+        """Check for environment variables if api_key contains a placeholder."""
+        if v and v.startswith("${") and v.endswith("}"):
+            env_var = v[2:-1]  # Remove ${ and }
+            env_value = os.environ.get(env_var)
+            if env_value:
+                return env_value
+            else:
+                logger.warning(f"Environment variable {env_var} not found for API key")
+        return v
 
 
 class APIConfig(BaseModel):
@@ -97,11 +113,38 @@ class APIConfig(BaseModel):
     rate_limit: int = 100  # requests per minute
 
 
+class ModelsConfig(RootModel):
+    """Configuration for multiple model providers."""
+    
+    root: Dict[str, ModelConfig] = Field(default_factory=dict)
+    
+    def __getitem__(self, key: str) -> ModelConfig:
+        """Get model config by name."""
+        return self.root[key]
+    
+    def __iter__(self):
+        """Iterate over model configs."""
+        return iter(self.root)
+    
+    def __len__(self) -> int:
+        """Get number of model configs."""
+        return len(self.root)
+    
+    def items(self):
+        """Get items from model configs."""
+        return self.root.items()
+    
+    def keys(self):
+        """Get keys from model configs."""
+        return self.root.keys()
+
+
 class AppConfig(BaseModel):
     """Application configuration."""
     
     mcp: MCPConfig
-    model: ModelConfig
+    model: ModelConfig  # Default model configuration
+    models: Optional[ModelsConfig] = None  # Multiple model configurations
     api: APIConfig
     data_dir: str = "./data"
     

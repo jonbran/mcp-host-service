@@ -3,14 +3,14 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 
 class User(BaseModel):
     """User model with basic attributes."""
     
     username: str
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None  # Changed from EmailStr to str to avoid email-validator dependency
     full_name: Optional[str] = None
     disabled: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -43,7 +43,7 @@ class UserCreate(BaseModel):
     """Model for user creation requests."""
     
     username: str
-    email: EmailStr
+    email: str  # Changed from EmailStr to str to avoid email-validator dependency
     full_name: Optional[str] = None
     password: str
     roles: List[str] = Field(default_factory=lambda: ["user"])

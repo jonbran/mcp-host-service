@@ -44,9 +44,16 @@ logs/
 
 # Local configuration
 config/local.json
+config/config.json  # Exclude the main config file with API keys
 
 # Conversation data
 data/conversations/
+
+# API Keys
+.env
+.env.local
+.env.development
+.env.production
 
 # Node modules (for any frontend components)
 node_modules/

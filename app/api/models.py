@@ -10,6 +10,7 @@ class ConversationCreateRequest(BaseModel):
     """Request model for creating a new conversation."""
     
     message: Optional[str] = None
+    provider_name: Optional[str] = None
 
 
 class ConversationCreateResponse(BaseModel):
@@ -17,12 +18,14 @@ class ConversationCreateResponse(BaseModel):
     
     conversation_id: str
     message: Optional[str] = None
+    provider_used: Optional[str] = None
 
 
 class ConversationMessageRequest(BaseModel):
     """Request model for adding a message to a conversation."""
     
     message: str
+    provider_name: Optional[str] = None
 
 
 class ConversationMessageResponse(BaseModel):
@@ -30,6 +33,7 @@ class ConversationMessageResponse(BaseModel):
     
     conversation_id: str
     message: str
+    provider_used: Optional[str] = None
 
 
 class MessageModel(BaseModel):

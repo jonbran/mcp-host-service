@@ -195,3 +195,22 @@ class ConversationStore:
         
         with open(conversation_path, "w") as f:
             f.write(conversation.model_dump_json(indent=2))
+
+
+def generate_human_readable_title(messages):
+    """Generate a human-readable title for a conversation."""
+    if messages:
+        # Use the first message content as the title
+        return messages[0].get("content", "New Conversation")[:50]  # Limit to 50 characters
+    return "New Conversation"
+
+
+def create_conversation(messages):
+    """Create a new conversation with a UUID and human-readable title."""
+    conversation_id = str(uuid.uuid4())
+    title = generate_human_readable_title(messages)
+    return {
+        "id": conversation_id,
+        "title": title,
+        "messages": messages,
+    }

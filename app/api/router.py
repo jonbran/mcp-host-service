@@ -3,7 +3,7 @@
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
@@ -21,7 +21,8 @@ from app.auth.utils import get_current_active_user
 from app.config.config import load_config
 from app.host.host import MCPHost
 from app.model.model import ModelService
-from app.persistence.conversation import ConversationStore
+from app.model.wrapper import ModelWrapper
+from app.persistence.conversation import ConversationStore, create_conversation
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,16 @@ logger = logging.getLogger(__name__)
 config = load_config(Path("config/config.json"))
 
 # Initialize services
-model_service = ModelService(config.model)
+# If models config is present, use the ModelWrapper
+if config.models and len(config.models) > 0:
+    logger.info(f"Initializing model wrapper with {len(config.models)} providers")
+    model_wrapper = ModelWrapper(config.models.root)
+    model_service = ModelService(config.model, model_wrapper=model_wrapper)
+else:
+    # Fall back to single model configuration
+    logger.info("Using single model configuration")
+    model_service = ModelService(config.model)
+
 conversation_store = ConversationStore(Path(config.data_dir))
 mcp_host = MCPHost(config, model_service)
 
@@ -71,16 +81,23 @@ async def create_conversation(
     
     # If there's an initial message, process it
     response_text = None
+    provider_used = None
     if request.message:
         # Add the user message
         conversation = conversation_store.add_message(
             conversation.id, "user", request.message
         )
         
+        # Use the specified provider or default to "anthropic"
+        provider_name = request.provider_name or "anthropic"
+        
         # Process with MCP host
         response_text, updated_history = await mcp_host.process_message(
-            request.message
+            request.message, provider_name=provider_name
         )
+        
+        # Store the provider used
+        provider_used = provider_name
         
         # Add the assistant response
         conversation = conversation_store.add_message(
@@ -90,7 +107,17 @@ async def create_conversation(
     return ConversationCreateResponse(
         conversation_id=conversation.id,
         message=response_text,
+        provider_used=provider_used,
     )
+
+
+@router.post("/conversations", tags=["Conversations"])
+async def create_new_conversation(messages: List[Dict[str, Any]]):
+    """API endpoint to create a new conversation."""
+    conversation = create_conversation(messages)
+    # Save conversation to persistence layer (e.g., database or file)
+    # ...existing code for saving...
+    return conversation
 
 
 @router.get(
@@ -175,9 +202,15 @@ async def add_message(
         for msg in conversation.messages
     ]
     
+    # Use the specified provider or default to "anthropic"
+    provider_name = request.provider_name or "anthropic"
+    
     response_text, updated_history = await mcp_host.process_message(
-        request.message, history
+        request.message, history, provider_name=provider_name
     )
+    
+    # Store the provider used
+    provider_used = provider_name
     
     # Add the assistant response
     conversation = conversation_store.add_message(
@@ -187,6 +220,7 @@ async def add_message(
     return ConversationMessageResponse(
         conversation_id=conversation_id,
         message=response_text,
+        provider_used=request.provider_name,
     )
 
 

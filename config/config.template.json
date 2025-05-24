@@ -22,6 +22,9 @@
           "type": "stdio",
           "command": "npx",
           "args": ["-y", "@executeautomation/playwright-mcp-server", "--headless", "--vision"]
+        },
+        "config": {
+          "mode": "vision"
         }
       }
     ]

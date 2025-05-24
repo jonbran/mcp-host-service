@@ -48,6 +48,7 @@ The MCP Host Service is a flexible, provider-based system for hosting language m
 #### 1.1 Base Provider Interface
 
 The system must implement a base abstract class for all model providers with these methods:
+
 - `initialize()`: Set up the provider's resources
 - `generate_response(messages)`: Generate text responses from conversation history
 
@@ -56,6 +57,7 @@ The system must implement a base abstract class for all model providers with the
 The system must include these provider implementations:
 
 ##### 1.2.1 HuggingFace Provider
+
 - **Purpose**: Local inference with HuggingFace models
 - **Requirements**:
   - Support for different model formats (DeepSeek, LLaMA, generic)
@@ -64,6 +66,7 @@ The system must include these provider implementations:
   - Customizable inference parameters (temperature, top_p)
 
 ##### 1.2.2 OpenAI Provider
+
 - **Purpose**: Remote inference via OpenAI's API
 - **Requirements**:
   - Support for OpenAI models (GPT family)
@@ -73,6 +76,7 @@ The system must include these provider implementations:
   - Message format conversion for OpenAI expectations
 
 ##### 1.2.3 Anthropic Provider
+
 - **Purpose**: Remote inference via Anthropic's API
 - **Requirements**:
   - Support for Claude model family
@@ -97,16 +101,20 @@ The model service must serve as a facade for all provider implementations:
 The API must expose these endpoints:
 
 #### 3.1 Conversation Management
+
 - `POST /conversations`: Create a new conversation
 - `GET /conversations/{id}`: Retrieve a conversation by ID
 - `DELETE /conversations/{id}`: Delete a conversation
 - `POST /conversations/{id}/messages`: Add a message to a conversation
 
 #### 3.2 Health Checks
+
 - `GET /health`: Basic health check endpoint
 
 #### 3.3 API Models
+
 The API must define data models for all requests and responses, including:
+
 - Conversation models
 - Message models
 - Error responses
@@ -114,12 +122,14 @@ The API must define data models for all requests and responses, including:
 ### 4. MCP Integration
 
 #### 4.1 MCP Host
+
 - Orchestrate interactions between users, models, and MCP servers
 - Extract MCP requests from model outputs
 - Route MCP requests to appropriate servers
 - Integrate MCP server responses into the conversation
 
 #### 4.2 MCP Client
+
 - Support multiple transport protocols:
   - Standard I/O (stdio) for local servers
   - Server-Sent Events (SSE) for remote servers
@@ -135,6 +145,7 @@ The API must define data models for all requests and responses, including:
 ### 6. Configuration
 
 #### 6.1 Structure
+
 The configuration system must support:
 
 ```json
@@ -178,7 +189,9 @@ The configuration system must support:
 ```
 
 #### 6.2 Configuration Enums
+
 The system must define enums for:
+
 - Transport types (stdio, sse)
 - Provider types (huggingface, openai, anthropic)
 
@@ -304,6 +317,7 @@ mcp_service/
 ### 5. Environment Variables
 
 The system must support these environment variables:
+
 - `OPENAI_API_KEY`: For OpenAI authentication
 - `ANTHROPIC_API_KEY`: For Anthropic authentication
 - `OPENAI_API_BASE`: For custom OpenAI endpoints
@@ -314,6 +328,7 @@ The system must support these environment variables:
 ### 1. Provider Testing
 
 The system must include a test script (`test_providers.py`) that:
+
 - Tests each provider independently
 - Verifies initialization and response generation
 - Handles cases with/without API keys
@@ -321,6 +336,7 @@ The system must include a test script (`test_providers.py`) that:
 ### 2. API Testing
 
 Test scripts must verify:
+
 - Conversation creation, retrieval, and deletion
 - Message addition and response generation
 - Error handling
@@ -328,6 +344,7 @@ Test scripts must verify:
 ### 3. MCP Testing
 
 Tests must verify:
+
 - MCP server connections
 - Request extraction and routing
 - Response integration
@@ -351,6 +368,7 @@ Tests must verify:
 ### 1. README.md
 
 Basic documentation covering:
+
 - System overview
 - Installation instructions
 - Usage examples
@@ -359,6 +377,7 @@ Basic documentation covering:
 ### 2. DEVELOPMENT.md
 
 Developer documentation covering:
+
 - Project structure
 - Adding new providers
 - Extending MCP capabilities
@@ -367,6 +386,7 @@ Developer documentation covering:
 ### 3. API Documentation
 
 Generated from FastAPI's automatic documentation system, covering:
+
 - Endpoint descriptions
 - Request/response models
 - Authentication requirements

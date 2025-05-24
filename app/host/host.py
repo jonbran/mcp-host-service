@@ -65,7 +65,7 @@ class MCPHost:
             await client.close()
     
     async def process_message(
-        self, message: str, conversation_history: List[Dict[str, Any]] = None
+        self, message: str, conversation_history: List[Dict[str, Any]] = None, provider_name: Optional[str] = "anthropic"
     ) -> Tuple[str, List[Dict[str, Any]]]:
         """Process a user message and generate a response.
         
@@ -78,6 +78,7 @@ class MCPHost:
         Args:
             message: User message
             conversation_history: Previous conversation history
+            provider_name: Optional provider name to use (defaults to anthropic)
             
         Returns:
             Tuple of (response text, updated conversation history)
@@ -99,23 +100,24 @@ class MCPHost:
         })
         
         # Process the message with the model, handling any MCP requests
-        response, updated_history = await self._process_with_model(conversation_history)
+        response, updated_history = await self._process_with_model(conversation_history, provider_name)
         
         return response, updated_history
     
     async def _process_with_model(
-        self, conversation_history: List[Dict[str, Any]]
+        self, conversation_history: List[Dict[str, Any]], provider_name: Optional[str] = None
     ) -> Tuple[str, List[Dict[str, Any]]]:
         """Process conversation with the model, handling MCP requests.
         
         Args:
             conversation_history: Conversation history
+            provider_name: Optional provider name to use
             
         Returns:
             Tuple of (response text, updated conversation history)
         """
         # Initial model call with the conversation history
-        response = await self.model_service.generate_response(conversation_history)
+        response = await self.model_service.generate_response(conversation_history, provider_name)
         
         # Check if the response contains MCP requests
         cleaned_response, mcp_requests = extract_mcp_requests_from_text(response)
@@ -137,7 +139,7 @@ class MCPHost:
             })
             
             # Call model again with updated history
-            response = await self.model_service.generate_response(conversation_history)
+            response = await self.model_service.generate_response(conversation_history, provider_name)
             
             # Clean up any remaining MCP requests
             cleaned_response, _ = extract_mcp_requests_from_text(response)
