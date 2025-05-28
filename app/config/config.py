@@ -18,6 +18,7 @@ class TransportType(str, Enum):
     
     STDIO = "stdio"
     SSE = "sse"
+    HTTP = "http"
 
 
 class ModelProviderType(str, Enum):
@@ -35,12 +36,13 @@ class TransportConfig(BaseModel):
     url: Optional[str] = None
     command: Optional[str] = None
     args: Optional[List[str]] = None
+    auth: Optional[Dict[str, str]] = None  # Authentication details like client_id and api_key
     
     @validator("url")
     def validate_url(cls, v: Optional[str], values: Dict[str, Any]) -> Optional[str]:
-        """Validate that URL is present for SSE transport."""
-        if values.get("type") == TransportType.SSE and not v:
-            raise ValueError("URL is required for SSE transport")
+        """Validate that URL is present for SSE and HTTP transport."""
+        if values.get("type") in [TransportType.SSE, TransportType.HTTP] and not v:
+            raise ValueError(f"URL is required for {values.get('type')} transport")
         return v
     
     @validator("command")

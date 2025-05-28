@@ -11,7 +11,7 @@ from typing import Dict, List, Optional
 import pytest
 
 # Set the base URL for the API
-BASE_URL = "http://localhost:8001/api"
+BASE_URL = "http://localhost:8000/api"
 
 # Auth credentials
 AUTH = {

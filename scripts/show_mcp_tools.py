@@ -177,7 +177,7 @@ async def main():
     """Main entry point."""
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Show available MCP tools")
-    parser.add_argument("--port", type=int, default=8001, help="Port for the API (default: 8001)")
+    parser.add_argument("--port", type=int, default=8000, help="Port for the API (default: 8000)")
     args = parser.parse_args()
     
     # Set up base URL

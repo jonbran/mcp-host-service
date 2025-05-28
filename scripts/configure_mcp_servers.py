@@ -224,7 +224,7 @@ def add_sample_servers(config: Dict) -> Dict:
         config,
         name="SearchEngine",
         transport_type="sse",
-        url="http://localhost:8001/search-mcp"
+        url="http://localhost:8002/search-mcp"
     )
     
     return config
