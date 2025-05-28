@@ -20,6 +20,7 @@ from app.auth.models import User
 from app.auth.utils import get_current_active_user
 from app.config.config import load_config
 from app.host.host import MCPHost
+from app.host.mcp_host import MCPSdkHost
 from app.model.model import ModelService
 from app.model.wrapper import ModelWrapper
 from app.persistence.conversation import ConversationStore, create_conversation
@@ -41,7 +42,11 @@ else:
     model_service = ModelService(config.model)
 
 conversation_store = ConversationStore(Path(config.data_dir))
-mcp_host = MCPHost(config, model_service)
+
+# Use the new MCP SDK Host implementation
+mcp_host = MCPSdkHost(config, model_service)
+# Legacy host is kept for backward compatibility if needed
+legacy_mcp_host = MCPHost(config, model_service)
 
 @asynccontextmanager
 async def router_lifespan(app):
@@ -49,6 +54,8 @@ async def router_lifespan(app):
     # Initialize services on startup
     await model_service.initialize()
     await mcp_host.initialize()
+    # Initialize legacy host for backward compatibility
+    # await legacy_mcp_host.initialize()
     
     yield
     

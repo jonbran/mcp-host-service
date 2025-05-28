@@ -195,6 +195,6 @@ if __name__ == "__main__":
     uvicorn.run(
         "search_server:app",
         host="0.0.0.0",
-        port=8001,
+        port=8002,  # Using port 8002 for search server to avoid conflicts with main MCP service
         reload=True,
     )

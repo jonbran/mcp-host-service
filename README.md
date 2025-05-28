@@ -13,6 +13,10 @@ This project implements an MCP (Model Context Protocol) Host/Client/Service that
 - Connect to configured MCP Servers to extend the model's capabilities:
   - WebScraper: Extract text and data from websites
   - SearchEngine: Perform web searches for information retrieval
+  - Scheduler: Schedule conversations for future delivery
+- Uses the official MCP Python SDK for standardized integration
+- Support for multiple transport types (STDIO, SSE, HTTP)
+- Authentication support for secure MCP server connections
 - Provide a REST API for users to interact with the model
 - Support conversation persistence for continued interactions
 - Docker support for containerization
@@ -36,18 +40,19 @@ This project implements an MCP (Model Context Protocol) Host/Client/Service that
 │             │       └───────────────┘
 └─────────────┘               │
                               v
-                      ┌───────────────┐
-                      │  MCP Servers: │
-                      │ • WebScraper  │
-                      │ • SearchEngine│
-                      └───────────────┘
+                      ┌───────────────────────┐
+                      │     MCP Servers:      │
+                      │ • WebScraper          │
+                      │ • SearchEngine        │
+                      │ • Scheduler           │
+                      └───────────────────────┘
 ```
 
 ## Components
 
 ### MCP Host
 
-The MCP Host manages the Hugging Face model and determines when to use MCP Servers for additional capabilities. It orchestrates the flow of information between the user, model, and MCP Servers.
+The MCP Host manages the model and determines when to use MCP Servers for additional capabilities. It orchestrates the flow of information between the user, model, and MCP Servers. The host now uses the official MCP Python SDK for standardized integration.
 
 ### MCP Client
 
@@ -59,6 +64,7 @@ The system integrates with several MCP servers that provide specialized function
 
 1. **WebScraper**: Scrapes and extracts content from web pages.
 2. **SearchEngine**: Performs web searches to provide up-to-date information.
+3. **Scheduler**: Manages scheduling of conversations for future delivery.
 
 ### Model Integration
 
@@ -146,9 +152,14 @@ mcp_service/
 │   ├── host/               # MCP Host implementation
 │   ├── model/              # Model integration
 │   ├── persistence/        # Conversation storage
+│   ├── scheduler/          # Scheduler service integration
 │   └── utils/              # Utility functions
 ├── docker/                 # Docker configuration
 ├── tests/                  # Test suite
+├── docs/                   # Documentation
+│   ├── mcp_sdk_integration.md      # MCP SDK integration guide
+│   ├── mcp_sdk_integration_summary.md # Integration summary
+│   └── scheduler_guide.md          # Scheduler service guide
 ├── .dockerignore           # Docker ignore file
 ├── .gitignore              # Git ignore file
 ├── Dockerfile              # Docker build file
@@ -160,6 +171,42 @@ mcp_service/
 
 ```bash
 pytest
+```
+
+## MCP SDK Integration
+
+This project uses the official Model Context Protocol (MCP) Python SDK for standardized integration with MCP servers. The SDK provides support for multiple transport types and authentication methods. For more details, see:
+
+- [MCP SDK Integration Guide](docs/mcp_sdk_integration.md)
+- [MCP SDK Integration Summary](docs/mcp_sdk_integration_summary.md)
+
+## Scheduler Service
+
+The Scheduler service allows scheduling conversations for future delivery using the MCP protocol. It's implemented as a separate .NET Core service that has been integrated with this project. For more details, see:
+
+- [Scheduler Service Guide](docs/scheduler_guide.md)
+
+### Starting the Scheduler Service
+
+```bash
+# Start both the API server and Scheduler service
+python scripts/start_services.py --scheduler
+
+# Or start just the Scheduler service
+python scripts/start_scheduler.py
+```
+
+### Using the Scheduler Service
+
+```bash
+# Schedule a conversation
+python scripts/scheduler_example.py --schedule
+
+# Check a conversation status
+python scripts/scheduler_example.py --check <conversation-id>
+
+# Cancel a scheduled conversation
+python scripts/scheduler_example.py --cancel <conversation-id>
 ```
 
 ## License

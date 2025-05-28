@@ -55,7 +55,7 @@ You can also start the servers directly:
 python scripts/webscraper_server.py
 
 # Start the SearchEngine server
-uvicorn scripts.search_server:app --host 0.0.0.0 --port 8001
+uvicorn scripts.search_server:app --host 0.0.0.0 --port 8002
 ```
 
 ## MCP Protocol

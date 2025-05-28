@@ -6,6 +6,7 @@ This script starts:
 1. The MCP service
 2. The WebScraper MCP server (if --webscraper is specified)
 3. The SearchEngine MCP server (if --searchengine is specified)
+4. The Scheduler MCP server (if --scheduler is specified)
 """
 
 import argparse
@@ -14,15 +15,90 @@ import os
 import signal
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 
-async def start_services(start_webscraper: bool, start_searchengine: bool):
+async def start_scheduler(port=5146, scheduler_path=None):
+    """Start the Scheduler MCP server.
+    
+    Args:
+        port: Port for the Scheduler service
+        scheduler_path: Path to the Scheduler service executable
+    
+    Returns:
+        Tuple of (name, process) or None if failed
+    """
+    # Find the Scheduler script
+    if Path("scripts/start_scheduler.py").exists():
+        scheduler_script = "scripts/start_scheduler.py"
+    else:
+        # Try to find it in the current directory
+        if Path("start_scheduler.py").exists():
+            scheduler_script = "start_scheduler.py"
+        else:
+            print("Error: start_scheduler.py not found")
+            return None
+    
+    command = [sys.executable, scheduler_script, "--port", str(port)]
+    
+    if scheduler_path:
+        command.extend(["--path", scheduler_path])
+    
+    # Start the Scheduler service
+    try:
+        # First, update the config
+        if Path("scripts/update_scheduler_config.py").exists():
+            update_script = "scripts/update_scheduler_config.py"
+        else:
+            update_script = "update_scheduler_config.py"
+        
+        if Path(update_script).exists():
+            print("Updating Scheduler configuration...")
+            update_process = subprocess.run(
+                [sys.executable, update_script],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True
+            )
+        
+        # Now start the Scheduler
+        print(f"Starting Scheduler service on port {port}...")
+        
+        # Use a log file for the Scheduler output
+        log_file = open("scheduler_service.log", "w")
+        
+        scheduler = subprocess.Popen(
+            command,
+            stdout=log_file,
+            stderr=log_file,
+        )
+        
+        # Give it a moment to start
+        time.sleep(2)
+        
+        # Check if the process is still running
+        if scheduler.poll() is not None:
+            print(f"Error: Scheduler service failed to start. Check scheduler_service.log for details.")
+            return None
+        
+        print(f"Scheduler service started. MCP endpoint: http://localhost:{port}/mcp")
+        return ("Scheduler", scheduler)
+    
+    except Exception as e:
+        print(f"Error starting Scheduler service: {e}")
+        return None
+
+
+async def start_services(start_webscraper: bool, start_searchengine: bool, start_scheduler: bool, scheduler_port: int = 5146, scheduler_path: str = None):
     """Start the MCP service and servers.
     
     Args:
         start_webscraper: Whether to start the WebScraper server
         start_searchengine: Whether to start the SearchEngine server
+        start_scheduler: Whether to start the Scheduler server
+        scheduler_port: Port for the Scheduler service
+        scheduler_path: Path to the Scheduler service executable
     """
     processes = []
     
@@ -49,12 +125,18 @@ async def start_services(start_webscraper: bool, start_searchengine: bool):
         # Start the SearchEngine server if requested
         if start_searchengine:
             searchengine = subprocess.Popen(
-                ["uvicorn", "scripts.search_server:app", "--host", "0.0.0.0", "--port", "8001"],
+                ["uvicorn", "scripts.search_server:app", "--host", "0.0.0.0", "--port", "8002"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
             processes.append(("SearchEngine", searchengine))
-            print("SearchEngine server started on http://localhost:8001")
+            print("SearchEngine server started on http://localhost:8002")
+        
+        # Start the Scheduler service if requested
+        if start_scheduler:
+            scheduler_result = await start_scheduler(scheduler_port, scheduler_path)
+            if scheduler_result:
+                processes.append(scheduler_result)
         
         print("\nPress Ctrl+C to stop all services\n")
         
@@ -67,11 +149,12 @@ async def start_services(start_webscraper: bool, start_searchengine: bool):
                 if process.poll() is not None:
                     print(f"{name} terminated unexpectedly with code {process.returncode}")
                     
-                    # Print stderr
-                    stderr = process.stderr.read().decode()
-                    if stderr:
-                        print(f"{name} stderr:")
-                        print(stderr)
+                    # Print stderr if available
+                    if hasattr(process, 'stderr') and process.stderr:
+                        stderr = process.stderr.read().decode()
+                        if stderr:
+                            print(f"{name} stderr:")
+                            print(stderr)
                     
                     # Terminate all processes
                     for _, p in processes:
@@ -110,6 +193,22 @@ def main():
         help="Start the SearchEngine server"
     )
     parser.add_argument(
+        "--scheduler", 
+        action="store_true",
+        help="Start the Scheduler server"
+    )
+    parser.add_argument(
+        "--scheduler-port", 
+        type=int, 
+        default=5146,
+        help="Port for the Scheduler service (default: 5146)"
+    )
+    parser.add_argument(
+        "--scheduler-path", 
+        type=str,
+        help="Path to the Scheduler service executable"
+    )
+    parser.add_argument(
         "--all", 
         action="store_true",
         help="Start all servers"
@@ -121,13 +220,20 @@ def main():
     if args.all:
         args.webscraper = True
         args.searchengine = True
+        args.scheduler = True
     
     # If no servers specified, provide a warning
-    if not (args.webscraper or args.searchengine):
+    if not (args.webscraper or args.searchengine or args.scheduler):
         print("Warning: No MCP servers specified. Only the MCP service will be started.")
-        print("Use --webscraper, --searchengine, or --all to start MCP servers.\n")
+        print("Use --webscraper, --searchengine, --scheduler, or --all to start MCP servers.\n")
     
-    asyncio.run(start_services(args.webscraper, args.searchengine))
+    asyncio.run(start_services(
+        args.webscraper, 
+        args.searchengine, 
+        args.scheduler,
+        args.scheduler_port,
+        args.scheduler_path
+    ))
 
 
 if __name__ == "__main__":
